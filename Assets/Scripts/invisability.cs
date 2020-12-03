@@ -7,6 +7,7 @@ public class invisability : MonoBehaviour
     public GameObject shopPan;
     public GameObject setings;
     public GameObject Palettes;
+    public GameObject Scrolshop;
 
     public void shopPan_HideandShow()
     {
@@ -21,5 +22,10 @@ public class invisability : MonoBehaviour
     public void Palettes_HideandShow()
     {
         Palettes.SetActive(!Palettes.activeSelf);
+    }
+
+    public void Scrolshop_HideandShow()
+    {
+        Scrolshop.SetActive(!Scrolshop.activeSelf);
     }
 }
