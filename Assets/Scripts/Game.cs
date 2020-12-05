@@ -13,7 +13,7 @@ public class Game : MonoBehaviour
     public Text scoreEarningText;
     
 
-    [Header("Валюты------------------------------------------")]
+    //[Header("Валюты------------------------------------------")]
     /*
     public Text gemsText;
     private int gems;
@@ -28,7 +28,6 @@ public class Game : MonoBehaviour
     public double[] boostPrice;
 
     [Header("Магазин улучшений-------------------------------")]
-    public List<Item> shopItems = new List<Item>();
     public Text[] shopItemsText;
     public Button[] shopButts;
 
@@ -39,13 +38,71 @@ public class Game : MonoBehaviour
     public Text[] buyProgressText;
     public int[] ultimateGoalProgress;
     private bool firstBuying;
+
+    [Header("Бонус за клики")]
+    public double price_clickBonus;
+    public double upCount_clickBonus;
     private double clickBonus;
+    [Space]
+    public int level_clickBonus;
+    public Text level_clickBonusT;
+    [Space]
+    public int ultimateGoal_clickBonus;
+    //public Text ultimateGoal_clickBonusT; при переходе на следующий уровень рисунка должно увеличиться и макс уровень улучшения
+
+    [Header("Бонус за время вне игры")]
+    public int maxTime_exitBonus;
+    public double price_exitBonus;
+    public int upCount_exitBonus;
+    public int level_exitBonus;
+    public Text level_exitBonusT;
+    public int ultimateGoal_exitBonus;
+    //public Text ultimateGoal_exitBonusT; при переходе на следующий уровень рисунка должно увеличиться и макс уровень улучшения
+
 
     private Save sv = new Save();
 
     private void Start()
     {
         StartCoroutine(bonusPerSecond());
+    }
+    
+    private void addClickBonus()
+    {
+        if(score >= price_clickBonus)
+        {
+            if(level_clickBonus != ultimateGoal_clickBonus)
+            {
+                score -= price_clickBonus;
+                clickBonus += upCount_clickBonus;
+                level_clickBonus++;
+                level_clickBonusT.text = level_clickBonus.ToString();
+                //поменять бонус к бонусклику и цену
+            }
+            else
+                Debug.Log("Покачто вы не можете улучшить ваш бонусклик! Перейдите на следующий уровень");
+        }
+        else
+            Debug.Log("У вас не хватает валюты!");
+    }
+
+    private void addAutoBonus_ExitDame()
+    {
+        if(score >= price_exitBonus)
+        {
+            if(level_exitBonus != ultimateGoal_exitBonus)
+            {
+                score -= price_exitBonus;
+                maxTime_exitBonus += upCount_exitBonus;
+                level_exitBonus++;
+                level_exitBonusT.text = level_exitBonus.ToString();
+                //поменять бонус к exitбонус и цену
+            }
+            else
+                Debug.Log("Покачто вы не можете улучшить ваш бонусклик! Перейдите на следующий уровень");
+        }
+        else
+            Debug.Log("У вас не хватает валюты!");
     }
 
     private void Update()
@@ -59,13 +116,20 @@ public class Game : MonoBehaviour
         if (PlayerPrefs.HasKey("SV"))
         { 
             sv = JsonUtility.FromJson<Save>(PlayerPrefs.GetString("SV"));
-            score = sv.score;
+            double totalBonus = 0;
+
+            DateTime dt = new DateTime(sv.date[0], sv.date[1], sv.date[2], sv.date[3], sv.date[4], sv.date[5]);
+            TimeSpan ts = DateTime.Now - dt;
+
             for (int i = 0; i < countButt; i++)
             {
                 buyProgress[i] = sv.buyProgress[i];
+                totalBonus += shopBonus[i]; 
                 autoBonus += buyProgress[i] * shopBonus[i];
                 buyProgressText[i].text = buyProgress[i].ToString();
             }
+            score = sv.score;
+            score += totalBonus * ts.TotalSeconds;
         }
     }
     
@@ -78,6 +142,7 @@ public class Game : MonoBehaviour
         {
             sv.buyProgress[i] = buyProgress[i];
         }
+        sv.date[0] = DateTime.Now.Year; sv.date[1] = DateTime.Now.Month; sv.date[2] = DateTime.Now.Day; sv.date[3] = DateTime.Now.Hour; sv.date[4] = DateTime.Now.Minute; sv.date[5] = DateTime.Now.Second;
         PlayerPrefs.SetString("SV", JsonUtility.ToJson(sv));
     }
 
@@ -93,7 +158,6 @@ public class Game : MonoBehaviour
             if (buyProgress[index] < ultimateGoalProgress[index])
             {
                 firstBuying = true;
-                //bonus += shopBonus[index]; бонус до кликов за покупку цвета
                 score -= shopPrice[index];
 
                 if (buyProgress[index] != ultimateGoalProgress[index] - 1)
@@ -160,4 +224,5 @@ public class Save
     public double score;
     public int[] buyProgress;
     public bool firstBuying;
+    public int[] date = new int[6];
 }
